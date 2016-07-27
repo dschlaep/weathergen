@@ -124,11 +124,11 @@ getSimulatedStatistics <- function(num_site, num_trials, myarray, wyear, stats=c
     
     
     for (k1 in 1:NUM_TRIALS) {
-      dir_ending1 <- paste0("TRIAL_", k1)
-      dir_ending2 <- paste(dir_ending1, ending2, sep="_")
-      filename <- paste("TRIAL",k1,"SITE",ss,sep="_")
+      # dir_ending1 <- paste0("TRIAL_", k1)
+      # dir_ending2 <- paste(dir_ending1, ending2, sep="_")
+      # filename <- paste("TRIAL",k1,"SITE",ss,sep="_")
       #cur_data <- data.matrix(read.table(file.path(dat_dir, dir_ending1, dir_ending2, filename)))
-      print(file.path(dat_dir, filename))
+      # print(file.path(dat_dir, filename))
       #cur_data <- data.matrix(read.table(file.path(dat_dir, filename)))
       cur_data <- data.matrix(myarray[ss,k1][[1]]$out[, c("PRCP","TMAX","TMIN")])
       Sim_Variable[, k1, 1:length(vars)] <- cur_data
@@ -411,7 +411,7 @@ plot7.basinwide.PowerSpectrum <- function(fig_dir, PowerSpectrum, ftag=""){
 #' 
 #'
 
-get_final_annual_sim_all <- function( ar_models, new_ar_model, num_trials=1, num_autocor_annual_changes=1,num_magnitude_noise_annual_changes=1,){
+get_final_annual_sim_all <- function( ar_models, new_ar_model, num_trials=1, num_autocor_annual_changes=1,num_magnitude_noise_annual_changes=1){
   Final_Annual_Sim_All <- array(NA,c(num_year_sim,num_trials,num_autocor_annual_changes,num_magnitude_noise_annual_changes))
   Annual_Sim <- array(NA,c(num_year_sim,length(ar_models)))
   for (k1 in 1:NUM_TRIALS) {
