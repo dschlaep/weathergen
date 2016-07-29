@@ -19,7 +19,8 @@ Imports:
     biwavelet,
     forecast,
     zoo,
-    moments
+    moments,
+    psych
 Suggests:
     knitr,
     rmarkdown,
