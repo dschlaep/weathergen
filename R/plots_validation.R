@@ -1134,8 +1134,8 @@ plot_sitespecific_spells_annual <- function(obs, sim, fig_dir=NULL, ftag="Valida
 #' plot7.basinwide.PowerSpectruml (fig_dir, PowerSpectrum)
 #' 
 #'
-plot_basinwide_powerspectrum <- function(annual_prcp, years, simlength, fig_dir=NULL, ftag=""){
-  Final_Annual_Sim_All <- get_final_annual_sim_all( annual_prcp, years, simlength )
+plot_basinwide_powerspectrum <- function(annual_prcp, years, simlength, num_trials, fig_dir=NULL, ftag=""){
+  Final_Annual_Sim_All <- get_final_annual_sim_all( annual_prcp, years, simlength, num_trials )
   PowerSpectrum <- getLowFrequencyVariability(annual_prcp,years, Final_Annual_Sim_All)
   if(!is.null(fig_dir)){
     pdf(width=9, height=3, file=file.path(fig_dir, paste0("7_Sites_MedianTrials_PowerSpectrum", ifelse(nchar(ftag > 0), "_"), ftag, ".pdf")))
@@ -1213,13 +1213,16 @@ get_new_ar_models <- function(ar_models, Wavelet_Decomposition,  use_warm_model 
       non_intercept <- which(names(ar_models[[1]]$coef)!="intercept")
       if (length(non_intercept)>0) {
         for (cur_par in non_intercept) {
-          new_ar_model[[count]]$coef[[cur_par]] <- new_parameters[[2]][cur_par]
+          if (!is.na( new_parameters[[2]][cur_par])) {
+            new_ar_model[[count]]$coef[[cur_par]] <- new_parameters[[2]][cur_par]
+          }
         }
       }
     }
   }
   return(new_ar_model) 
 }
+
 
 get_ar_models <- function(annual_prcp, years, Wavelet_Decomposition, use_warm_model = TRUE){
   ar_models <- list()
@@ -1256,7 +1259,6 @@ get_ar_models <- function(annual_prcp, years, Wavelet_Decomposition, use_warm_mo
 get_final_annual_sim_all <- function( annual_prcp, years,num_year_sim, num_trials=1, num_autocor_annual_changes=1,num_magnitude_noise_annual_changes=1, sig.level =0.9, n.periods=1, sig.periods=c(8,9,10,11,12,13,14,15), n.comp.periods=8){
   if (any(n.periods >= length(annual_prcp)) || max(n.comp.periods) > length(sig.periods))
     stop("any(n.periods >= length(annual_prcp)) || max(n.comp.periods) > length(sig.periods) is true, simulating more years may help")
-  
   Wavelet_Decomposition  <- wavelet_components(annual_prcp,wavelet_analysis(annual_prcp,years,sig.level, "white"), n.periods, sig.periods,n.comp.periods)
   ar_models <- get_ar_models(annual_prcp, years, Wavelet_Decomposition)
   new_ar_model <- get_new_ar_models(ar_models, Wavelet_Decomposition)
