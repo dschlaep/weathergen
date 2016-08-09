@@ -14,7 +14,7 @@ plot_gws_power <- function(wgen_wave, wgen_mc) {
   df_lines <- data.frame(PERIOD=wgen_wave$period[x1:x2],
                          POWER=wgen_wave$gws[x1:x2],
                          MEAN=wgen_mc$gws.stat[x1:x2, 'MEAN'],
-                         SIGNIF=wgen_wave$gws.sig$signif[x1:x2])
+                         SIGNIF=wgen_wave$gws.sig$signif[x1:x2] * wgen_wave$sigma2)
   df_lines <- tidyr::gather(df_lines, VAR, VALUE, POWER:SIGNIF)
   p <- ggplot2::ggplot(df_lines, aes(x=PERIOD)) +
     ggplot2::geom_ribbon(aes(ymin=Q025, ymax=Q975), data=df_area, fill='grey80') +

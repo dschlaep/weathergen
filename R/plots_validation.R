@@ -1140,9 +1140,11 @@ plot_basinwide_powerspectrum <- function(annual_prcp, years, simlength, num_tria
   if(!is.null(fig_dir)){
     pdf(width=9, height=3, file=file.path(fig_dir, paste0("7_Sites_MedianTrials_PowerSpectrum", ifelse(nchar(ftag > 0), "_"), ftag, ".pdf")))
   }
+  layout(1)
   plot(PowerSpectrum$Power_Spectrum_Period, PowerSpectrum$Power_Spectrum_Obs,xlab="Period (years)", ylab="Power (mm2)", type="l",col="black",lwd=2)
   polygon(c(PowerSpectrum$Power_Spectrum_Period,rev(PowerSpectrum$Power_Spectrum_Period)),c(PowerSpectrum$Sim_Power_Spectrum_3,rev(PowerSpectrum$Sim_Power_Spectrum_2)),col="grey")
-  lines(PowerSpectrum$Power_Spectrum_Period, PowerSpectrum$Sim_Power_Spectrum_1,type="l",col="black",lwd=2)
+  lines(PowerSpectrum$Power_Spectrum_Period, PowerSpectrum$Sim_Power_Spectrum_1,type="l",col="blue",lwd=2)
+  lines(PowerSpectrum$Power_Spectrum_Period, PowerSpectrum$Power_Spectrum_Sig,type="l",col="black",lwd=2)
   lines(PowerSpectrum$Power_Spectrum_Period, PowerSpectrum$Power_Spectrum_Obs,col="red",lwd=2)
   
   if(!is.null(fig_dir)){
@@ -1165,9 +1167,11 @@ plot_basinwide_powerspectrum_man <- function(PowerSpectrum, fig_dir=NULL, ftag="
   if(!is.null(fig_dir)){
     pdf(width=9, height=3, file=file.path(fig_dir, paste0("7_Sites_MedianTrials_PowerSpectrum", ifelse(nchar(ftag > 0), "_"), ftag, ".pdf")))
   }
+  layout(1)
   plot(PowerSpectrum$Power_Spectrum_Period, PowerSpectrum$Power_Spectrum_Obs,xlab="Period (years)", ylab="Power (mm2)", type="l",col="black",lwd=2)
   polygon(c(PowerSpectrum$Power_Spectrum_Period,rev(PowerSpectrum$Power_Spectrum_Period)),c(PowerSpectrum$Sim_Power_Spectrum_3,rev(PowerSpectrum$Sim_Power_Spectrum_2)),col="grey")
-  lines(PowerSpectrum$Power_Spectrum_Period, PowerSpectrum$Sim_Power_Spectrum_1,type="l",col="black",lwd=2)
+  lines(PowerSpectrum$Power_Spectrum_Period, PowerSpectrum$Sim_Power_Spectrum_1,type="l",col="blue",lwd=2)
+  lines(PowerSpectrum$Power_Spectrum_Period, PowerSpectrum$Power_Spectrum_Sig,type="l",col="black",lwd=2)
   lines(PowerSpectrum$Power_Spectrum_Period, PowerSpectrum$Power_Spectrum_Obs,col="red",lwd=2)
   
   if(!is.null(fig_dir)){
@@ -1343,13 +1347,13 @@ getCorrelations <- function(AnnualMeans, vars= c("prcp","tmax","tmin")){
 getLowFrequencyVariability <- function(ANNUAL_PRCP, years, Final_Annual_Sim_All){
   #Observed
   #Wavelet_Analysis <- WAVELET_ANALYSIS(ANNUAL_PRCP,siglvl=0.90,background_noise="white",plot_flag=FALSE)
-  Wavelet_Analysis <- wavelet_analysis(ANNUAL_PRCP,years, sig.level=0.90, noise.type="white")  ## function WAVELET_ANALYSIS and wavelet analysis should be compared.
+  Wavelet_Analysis <- wavelet_analysis(ANNUAL_PRCP,years, sig.level=0.90, noise.type="white")
   #num_power<- length(Wavelet_Analysis[[1]])
   num_power <- length(Wavelet_Analysis$gws)                  # -1 ??
   # Power_Spectrum_Obs <- Wavelet_Analysis[[1]]    
   Power_Spectrum_Obs <- Wavelet_Analysis$gws
   #Power_Spectrum_Sig <- Wavelet_Analysis[[2]]
-  Power_Spectrum_Sig <- var(ANNUAL_PRCP) * Wavelet_Analysis$gws.sig$signif
+  Power_Spectrum_Sig <- Wavelet_Analysis$gws.sig$signif *Wavelet_Analysis$sigma2  # var(ANNUAL_PRCP) * Wavelet_Analysis$gws.sig$signif
   #Power_Spectrum_Period <- Wavelet_Analysis[[3]]
   Power_Spectrum_Period <- Wavelet_Analysis$period
   
@@ -1385,7 +1389,7 @@ getLowFrequencyVariability <- function(ANNUAL_PRCP, years, Final_Annual_Sim_All)
     # wavelet_analysis$period == WAVELET_ANALYSIS[[3]]
     # wavelet_analysis$ == WAVELET_ANALYSIS[[2]]    NOT FOUND.... maybe some additional calculation
     Wavelet_Analysis <- wavelet_analysis(Final_Annual_Sim_All[,k1,,],years, sig.level=0.90,noise.type="white")
-    Annual_Area_Avg_Wavelet_Sim[,k1] <- Wavelet_Analysis[[1]][1:num_power]
+    Annual_Area_Avg_Wavelet_Sim[,k1] <- Wavelet_Analysis$gws[1:num_power]
   }
   
   Sim_Power_Spectrum_1 <- apply(Annual_Area_Avg_Wavelet_Sim,FUN=mean,1)
