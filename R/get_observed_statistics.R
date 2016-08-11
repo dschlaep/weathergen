@@ -7,24 +7,22 @@
 #' @param timesteps used for the data, default is c("daily","monthly", "annual")
 #' @param stats to be calculated over the provided data, defa c("mean","stdev","skew"). Only change if you know what you do.
 #' @param spells usually keep on default c("mean","stdev","skew"). Only change if you know what you do.
-#' @param return.periods 
-#' 
-#' @param Month contains the year of the observed data  
-
+#' @param return.periods, default is c(10,30,100)
+#' @param months number of month, default is c(1:12)  
 #' @export
 #' @examples
 #' get_observed_statistics(wgen_out_array)
 #'  
 #'
-get_observed_statistics <- function(wgen_out_array, vars=c("prcp","tmax","tmin"), timesteps= c("daily","monthly", "annual"), stats=  c("mean","stdev","skew"),spells=c("wet","dry"), return.periods=c(10,30,100), mo=c(1:12)){
+get_observed_statistics <- function(wgen_out_array, vars=c("prcp","tmax","tmin"), timesteps= c("daily","monthly", "annual"), stats=  c("mean","stdev","skew"),spells=c("wet","dry"), return.periods=c(10,30,100), months=c(1:12)){
   
   num_site   <- dim(wgen_out_array)[1]
   num_trials <- 1 # dim(wgen_out_array)[2] # no trials because these are observational data
-  wyear <-  as.matrix(format(wgen_out_array[[1,1]]$out['DATE'], "%Y"))  #All simulation outputs must have same length??
+  wyear <-  as.matrix(format(wgen_out_array[[1,1]]$obs['DATE'], "%Y"))  #All simulation outputs must have same length??
   
   #Stats = median + realizations, median + sites, statistics, variables, timesteps, months
-  Stats <- array(NA, dim=c(1 + num_trials, 1 + num_site, length(stats), length(vars), length(timesteps), length(mo)),
-                 dimnames=list(NULL, NULL, stats, vars, timesteps, mo))
+  Stats <- array(NA, dim=c(1 + num_trials, 1 + num_site, length(stats), length(vars), length(timesteps), length(months)),
+                 dimnames=list(NULL, NULL, stats, vars, timesteps, months))
   #AnnualMeans = median + realizations, median + sites, variables, years
   AnnualMeans <- array(0, dim=c(1 + num_trials, 1 + num_site, length(vars), dim(unique(wyear))[1]), #WATER_YEAR_SIM
                        dimnames=list(NULL, NULL, vars, sort(unique(wyear)[,1])))
@@ -32,42 +30,43 @@ get_observed_statistics <- function(wgen_out_array, vars=c("prcp","tmax","tmin")
   AnnualEDV <- array(NA, dim=c(1 + num_trials, 1 + num_site, length(vars), length(return.periods)),
                      dimnames=list(NULL, NULL, vars, return.periods))
   #Spells = median + realizations, median + sites, stats*{dry,wet}, months
-  Spells <- array(0, dim=c(1 + num_trials, 1 + num_site, length(spells) * length(stats), length(mo)),
-                  dimnames=list(NULL, NULL, paste(rep(spells, each=length(stats)), stats, sep="_"), mo))
+  Spells <- array(0, dim=c(1 + num_trials, 1 + num_site, length(spells) * length(stats), length(months)),
+                  dimnames=list(NULL, NULL, paste(rep(spells, each=length(stats)), stats, sep="_"), months))
   
   
-  month <- as.matrix(obs[[1,1]]$out['MONTH'])
+  month <- as.matrix(obs[[1,1]]$obs['MONTH'])
   
   
   for (k1 in 1:num_trials) for(iv in seq_along(vars)){
     
     # site_prcp <- wgen_out_array[[1,k1]]$out['PRCP']
-    
+    # TODO check original and compare to get all sites PRCP used, currently only site 1 is used... sapply should help
+    #sapply(wgen_out_array[,1], FUN= function(x) <- x$obs['PRCP']) 
     #SITE_OBS <- switch(iv, sites_prcp, sites_tmax, sites_tmin)
-    SITE_OBS <- switch(iv,  wgen_out_array[[1,k1]]$out['PRCP'],  wgen_out_array[[1,k1]]$out['TMAX'],  wgen_out_array[[1,k1]]$out['TMIN'])
+    SITE_OBS <- switch(iv,  wgen_out_array[[1,k1]]$obs['PRCP'],  wgen_out_array[[1,k1]]$obs['TMAX'],  wgen_out_array[[1,k1]]$obs['TMIN'])
     #Monthly mean daily values
     for (k2 in (seg_along(stats))) {
       if(vars[iv] == "prcp"){
-        Stats[1 + k1, -1, k2, iv, 1, mo] <- t(apply(SITE_OBS, c(2), function(x) {y <- which(x>0); aggregate(x[y], by=list(month[y]), FUN=get(stats[k2]))[,2]}))
-        #Stats[1 + k1, -1, k2, iv, 1, mo] <- t(apply(SITE_OBS, c(2), function(x) {y <- which(x>0); aggregate(x[y], by=list(month[y]), FUN=mean)[,2]}))
-        #Stats[1 + k1, -1, k2, iv, 1, mo] <- t(apply(SITE_OBS, c(2), function(x) {y <- which(x>0); aggregate(x[y], by=list(month[y]), FUN=sd)[,2]}))
-        #Stats[1 + k1, -1, k2, iv, 1, mo] <- t(apply(SITE_OBS, c(2), function(x) {y <- which(x>0); aggregate(x[y], by=list(month[y]), FUN=psych::skew)[,2]}))
+        Stats[1 + k1, -1, k2, iv, 1, months] <- t(apply(SITE_OBS, c(2), function(x) {y <- which(x>0); aggregate(x[y], by=list(month[y]), FUN=get(stats[k2]))[,2]}))
+        #Stats[1 + k1, -1, k2, iv, 1, months] <- t(apply(SITE_OBS, c(2), function(x) {y <- which(x>0); aggregate(x[y], by=list(month[y]), FUN=mean)[,2]}))
+        #Stats[1 + k1, -1, k2, iv, 1, months] <- t(apply(SITE_OBS, c(2), function(x) {y <- which(x>0); aggregate(x[y], by=list(month[y]), FUN=sd)[,2]}))
+        #Stats[1 + k1, -1, k2, iv, 1, months] <- t(apply(SITE_OBS, c(2), function(x) {y <- which(x>0); aggregate(x[y], by=list(month[y]), FUN=psych::skew)[,2]}))
       } else {
-        Stats[1 + k1, -1, k2, iv, 1, mo] <- t(apply(SITE_OBS, c(2), function(x) {y <- which(x>0); aggregate(x[y], by=list(month[y]), FUN=get(stats[k2]))[,2]}))
-        # Stats[1 + k1, -1, k2, iv, 1, mo] <- t(apply(SITE_OBS, c(2), function(x) aggregate(x, by=list(month), FUN=mean)[,2]))
-        # Stats[1 + k1, -1, k2, iv, 1, mo] <- t(apply(SITE_OBS, c(2), function(x) aggregate(x, by=list(month), FUN=sd)[,2]))
-        # Stats[1 + k1, -1, k2, iv, 1, mo] <- t(apply(SITE_OBS, c(2), function(x) aggregate(x, by=list(month), FUN=psych::skew)[,2]))
+        Stats[1 + k1, -1, k2, iv, 1, months] <- t(apply(SITE_OBS, c(2), function(x) {y <- which(x>0); aggregate(x[y], by=list(month[y]), FUN=get(stats[k2]))[,2]}))
+        # Stats[1 + k1, -1, k2, iv, 1, months] <- t(apply(SITE_OBS, c(2), function(x) aggregate(x, by=list(month), FUN=mean)[,2]))
+        # Stats[1 + k1, -1, k2, iv, 1, months] <- t(apply(SITE_OBS, c(2), function(x) aggregate(x, by=list(month), FUN=sd)[,2]))
+        # Stats[1 + k1, -1, k2, iv, 1, months] <- t(apply(SITE_OBS, c(2), function(x) aggregate(x, by=list(month), FUN=psych::skew)[,2]))
       }
     }  
    
     # if(vars[iv] == "prcp"){
-    #   Stats[1 + k1, -1, 1, iv, 1, mo] <- t(apply(SITE_OBS, c(2), function(x) {y <- which(x>0); aggregate(x[y], by=list(month[y]), FUN=mean)[,2]}))
-    #   Stats[1 + k1, -1, 2, iv, 1, mo] <- t(apply(SITE_OBS, c(2), function(x) {y <- which(x>0); aggregate(x[y], by=list(month[y]), FUN=sd)[,2]}))
-    #   Stats[1 + k1, -1, 3, iv, 1, mo] <- t(apply(SITE_OBS, c(2), function(x) {y <- which(x>0); aggregate(x[y], by=list(month[y]), FUN=psych::skew)[,2]}))
+    #   Stats[1 + k1, -1, 1, iv, 1, months] <- t(apply(SITE_OBS, c(2), function(x) {y <- which(x>0); aggregate(x[y], by=list(month[y]), FUN=mean)[,2]}))
+    #   Stats[1 + k1, -1, 2, iv, 1, months] <- t(apply(SITE_OBS, c(2), function(x) {y <- which(x>0); aggregate(x[y], by=list(month[y]), FUN=sd)[,2]}))
+    #   Stats[1 + k1, -1, 3, iv, 1, months] <- t(apply(SITE_OBS, c(2), function(x) {y <- which(x>0); aggregate(x[y], by=list(month[y]), FUN=psych::skew)[,2]}))
     # } else {
-    #   Stats[1 + k1, -1, 1, iv, 1, mo] <- t(apply(SITE_OBS, c(2), function(x) aggregate(x, by=list(month), FUN=mean)[,2]))
-    #   Stats[1 + k1, -1, 2, iv, 1, mo] <- t(apply(SITE_OBS, c(2), function(x) aggregate(x, by=list(month), FUN=sd)[,2]))
-    #   Stats[1 + k1, -1, 3, iv, 1, mo] <- t(apply(SITE_OBS, c(2), function(x) aggregate(x, by=list(month), FUN=psych::skew)[,2]))
+    #   Stats[1 + k1, -1, 1, iv, 1, months] <- t(apply(SITE_OBS, c(2), function(x) aggregate(x, by=list(month), FUN=mean)[,2]))
+    #   Stats[1 + k1, -1, 2, iv, 1, months] <- t(apply(SITE_OBS, c(2), function(x) aggregate(x, by=list(month), FUN=sd)[,2]))
+    #   Stats[1 + k1, -1, 3, iv, 1, months] <- t(apply(SITE_OBS, c(2), function(x) aggregate(x, by=list(month), FUN=psych::skew)[,2]))
     # }
     # 
     #Annual mean daily values
@@ -92,7 +91,7 @@ get_observed_statistics <- function(wgen_out_array, vars=c("prcp","tmax","tmin")
     #PRCP mean monthly wet/dry spells
     for(is in 1:num_site){
       # Spells[1 + k1, 1 + is, , ] <- t(aggregate(sites_prcp[, is], by=list(MONTH_D), FUN=function(x) {
-      Spells[1 + k1, 1 + is, , ] <- t(aggregate(wgen_out_array[[is,k1]]$out['PRCP'], by=list(month), FUN=function(x) {
+      Spells[1 + k1, 1 + is, , ] <- t(aggregate(wgen_out_array[[is,k1]]$obs['PRCP'], by=list(month), FUN=function(x) {
         temp <- rle(x > 0)
         res <- sapply(list(temp$lengths[temp$values], temp$lengths[!temp$values]), FUN=function(x) c(mean(x), sd(x), psych::skew(x)))
         return(res)})[, 2])
