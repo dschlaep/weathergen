@@ -1,8 +1,8 @@
 
 #' get_correlations calculate correlations for plot function 5
 #'
-#' @param annual_means This value can be retrieved from getObservedStatistics(...)$AnnualMeans or getSimulatedStatistics(..)$AnnualMeans
-#' @param vars
+#' @param annual_means This value can be retrieved from get_observed_statistics(...)$AnnualMeans or get_simulated_statistics(..)$AnnualMeans
+#' @param vars variables for whic a calculation is done. Default is c("prcp","tmax","tmin")
 #' @export
 #' @examples
 #' obsstats$cors <- get_correlations(annual_means=obssStats$AnnualMeans[-1, -1, , , drop=FALSE])
