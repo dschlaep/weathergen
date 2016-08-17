@@ -2,10 +2,7 @@
 #' Each row is a site, each column a trial.
 #'
 #' @param wgen_out_array simulation outputs of wgen_daily per site and trials collected in array.
-#' @param stats of which functions are created c("mean","stdev","skew")
-#' @param vars variables of which stats are calculated. Default is daily precipitation,  max and min temperature c("prcp","tmax","tmin").
-#' @param timesteps over which stats are calculated, default is c("daily","monthly", "annual"). 
-#' @param months is the number of months, default c(1:12).
+#' @param vars variables of which stats are calculated. Default is daily precipitation,  max and min temperature and wind c("prcp","tmax","tmin", "wind").
 #' @param return.periods default is c(10,30,100).
 #' @param spells, default is c("wet","dry"). TODO: The package uses dry, wet, extreme check if we should switch defaults to c('d', 'w', 'e')
 #' @export
@@ -13,8 +10,11 @@
 #' get_simulated_statistics(wgen_out_array, stats=c("mean","stdev","skew"), vars=c("prcp","tmax","tmin"), timesteps= c("daily","monthly", "annual"), months=c(1:12), return.periods=c(10,30,100), spells=c("wet","dry"))
 #'  
 
-get_simulated_statistics <- function(wgen_out_array, stats=c("mean","stdev","skew"),vars=c("prcp","tmax","tmin"), timesteps=c("daily","monthly", "annual"), months=c(1:12), return.periods=c(10,30,100), spells=c("wet","dry")){
+get_simulated_statistics <- function(wgen_out_array, vars=c("prcp","tmax","tmin", "wind"), return.periods=c(10,30,100), spells=c("wet","dry")){
   
+  stats <- c("mean","stdev","skew")
+  months <- c(1:12) 
+  timesteps=c("daily","monthly", "annual")
   cur_data <- wgen_out_array[1,1][[1]]$out
   num_site   <- dim(wgen_out_array)[1]
   num_trials <- dim(wgen_out_array)[2]
@@ -39,15 +39,8 @@ get_simulated_statistics <- function(wgen_out_array, stats=c("mean","stdev","ske
     
     
     for (k1 in 1:num_trials) {
-      # dir_ending1 <- paste0("TRIAL_", k1)
-      # dir_ending2 <- paste(dir_ending1, ending2, sep="_")
-      # filename <- paste("TRIAL",k1,"SITE",ss,sep="_")
-      #cur_data <- data.matrix(read.table(file.path(dat_dir, dir_ending1, dir_ending2, filename)))
-      # print(file.path(dat_dir, filename))
-      #cur_data <- data.matrix(read.table(file.path(dat_dir, filename)))
-      cur_data <- data.matrix(wgen_out_array[ss,k1][[1]]$out[, c("PRCP","TMAX","TMIN")])
+      cur_data <- data.matrix(wgen_out_array[ss,k1][[1]]$out[, toupper(vars)])
       Sim_Variable[, k1, 1:length(vars)] <- cur_data
-      # Sim_Variable[, k1, 1:length(vars)] <- cur_data[, 4:(3+length(vars))]
     }
     
     #######Site Statistics
@@ -55,7 +48,7 @@ get_simulated_statistics <- function(wgen_out_array, stats=c("mean","stdev","ske
     
     for (k1 in 1:num_trials) {
       for(iv in seq_along(vars)){
-        if (vars[iv] == "prcp") {
+        if (toupper(vars[iv]) == "PRCP") {
           y <- which(Sim_Variable[, k1, iv]>0)
         } else {
           y <- 1:length(Sim_Variable[, k1, iv])
@@ -72,23 +65,35 @@ get_simulated_statistics <- function(wgen_out_array, stats=c("mean","stdev","ske
         Stats[1 + k1, 1 + ss, 3, iv, 3, 1] <- skew(AnnualMeans[1 + k1, 1 + ss, iv, ])
         
         #Annual extreme daily values
-        ext <- aggregate(Sim_Variable[, k1, iv] * ifelse(vars[iv] == "tmin", -1, 1), by=list(cur_data[,1]), FUN=max)[,2] #dim(ext) = years; find max for prcp and tmax, but -min for tmin
+        ext <- if(toupper(vars[iv]) == "TMIN") {
+          aggregate(Sim_Variable[, k1, iv], by=list(cur_data[,1]), FUN=min)[,2] #dim(ext) = years; find max for prcp and tmax, but -min for tmin
+        } else {
+          aggregate(Sim_Variable[, k1, iv], by=list(cur_data[,1]), FUN=max)[,2] #dim(ext) = years; find max for prcp and tmax, but -min for tmin
+        }           
+        #ext <- aggregate(Sim_Variable[, k1, iv] * ifelse(vars[iv] == "tmin", -1, 1), by=list(cur_data[,1]), FUN=max)[,2] #dim(ext) = years; find max for prcp and tmax, but -min for tmin
         AnnualEDV[1 + k1, 1 + ss, iv, ] <- return.level(fevd(ext, type="GEV", method="MLE", time.units="year"), return.period=return.periods)
         AnnualEDV[1 + k1, 1 + ss, iv, ] <- ifelse(AnnualEDV[1 + k1, 1 + ss, iv, ] > 2 * max(ext), NA, AnnualEDV[1 + k1, 1 + ss, iv, ]) #set outliers to NA
-        if(vars[iv] == "tmin") AnnualEDV[1 + k1, 1 + ss, iv, ] <- -AnnualEDV[1 + k1, 1 + ss, iv, ] #set -min to min for tmin
+        if(toupper(vars[iv]) == "TMIN") AnnualEDV[1 + k1, 1 + ss, iv, ] <- -AnnualEDV[1 + k1, 1 + ss, iv, ] #set -min to min for tmin
         
         #PRCP mean monthly wet/dry spells
-        if(vars[iv] == "prcp"){
-          #Spells[1 + k1, 1 + ss, , ] <- t(aggregate(Sim_Variable[, k1, iv], by=list(MONTH_SIM), FUN=function(x) {
-          Spells[1 + k1, 1 + ss, , ] <- t(aggregate(Sim_Variable[, k1, iv], by=list(data.matrix(wgen_out_array[ss,k1][[1]]$out[, c("MONTH")])), FUN=function(x) {
-            temp <- rle(x > 0)
-            res <- sapply(list(temp$lengths[temp$values], temp$lengths[!temp$values]), FUN=function(x) c(mean(x), sd(x), skew(x)))
-            return(res)})[, 2])
+        if(toupper(vars[iv]) == "PRCP"){
+          if (any(toupper(testspells)=="EXTREME")) { # Currently, if extreme is in spells, ignore it. Implementation will follow
+            Spells[1 + k1, 1 + ss, c(-7,-8,-9), ] <- t(aggregate(Sim_Variable[, k1, iv], by=list(data.matrix(wgen_out_array[ss,k1][[1]]$out[, c("MONTH")])), FUN=function(x) {
+              temp <- rle(x > 0)
+              res <- sapply(list(temp$lengths[temp$values], temp$lengths[!temp$values]), FUN=function(x) c(mean(x), sd(x), skew(x)))
+              return(res)})[, 2])           
+          } else {  
+            #Spells[1 + k1, 1 + ss, , ] <- t(aggregate(Sim_Variable[, k1, iv], by=list(MONTH_SIM), FUN=function(x) {
+            Spells[1 + k1, 1 + ss, , ] <- t(aggregate(Sim_Variable[, k1, iv], by=list(data.matrix(wgen_out_array[ss,k1][[1]]$out[, c("MONTH")])), FUN=function(x) {
+              temp <- rle(x > 0)
+              res <- sapply(list(temp$lengths[temp$values], temp$lengths[!temp$values]), FUN=function(x) c(mean(x), sd(x), skew(x)))
+              return(res)})[, 2])
+          }
         }
       }
     }
   }
-  AnnualMeans[, , vars == "prcp", ] <- 365 * AnnualMeans[, , vars == "prcp", ]
+  AnnualMeans[, , toupper(vars) == "PRCP", ] <- 365 * AnnualMeans[, , toupper(vars) == "PRCP", ]
   
   #Medians across trials
   Stats[1, , , , , ] <- apply(Stats[-1, , , , , , drop=FALSE], MARGIN=c(2, 3, 4, 5, 6), FUN=median, na.rm=TRUE)

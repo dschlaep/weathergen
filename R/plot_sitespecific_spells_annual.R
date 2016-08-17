@@ -4,16 +4,16 @@
 #' @param sim simulation output data
 #' @param fig_dir  Directory to create PDF containing the plot. Can be NULL to plot on screen
 #' @param filename  filename of PDF to create, containing the plot. The .pdf ending is added in the function, not needed in the filename. Default filename is 6_Sites_MedianTrials_AnnualSpells 
-#' @param stats, default is c("mean","stdev","skew")
-#' @param vars, variables default is c("prcp","tmax","tmin")
-#' @param months, month numbers, default is c(1:12)
+#' @param vars, variables default is c("prcp","tmax","tmin","wind")
 #' @param spells, default is c("wet","dry")  TODO: The package uses dry, wet, extreme check if we should switch defaults to c('d', 'w', 'e')
 #' @export
 #' @examples
 #' plot_sitespecific_spells_annual (obs, sim)
 #' 
 #'
-plot_sitespecific_spells_annual <- function(obs, sim, fig_dir=NULL, filename="6_Sites_MedianTrials_AnnualSpells", stats=c("mean","stdev","skew"), vars=c("prcp","tmax","tmin"), months=c(1:12),spells=c("wet","dry")){
+plot_sitespecific_spells_annual <- function(obs, sim, fig_dir=NULL, filename="6_Sites_MedianTrials_AnnualSpells", vars=c("prcp","tmax","tmin","wind"),spells=c("wet","dry")){
+  stats <- c("mean","stdev","skew")
+  months <- c(1:12)
   if(!is.null(fig_dir)){
     pdf(width=3*length(spells), height=3*length(stats), file=file.path(fig_dir, paste0(filename, ".pdf")))
   }

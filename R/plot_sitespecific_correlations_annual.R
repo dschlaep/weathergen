@@ -4,13 +4,13 @@
 #' @param simcors simulation output correlations retrieved by get_correlations()
 #' @param fig_dir  Directory to create PDF containing the plot
 #' @param filename filename of PDF to create. PDF Ending will be added, not needed in filename. Default filename is 5_Sites_MedianTrials_AnnualCorrelations.pdf
-#' @param vars variables, default is c("prcp","tmax","tmin")
+#' @param vars variables, default is c("prcp","tmax","tmin","wind")
 #' @export
 #' @examples
 #' plot_sitespecific_correlations_annual (obscors, simcors)
 #' 
 #'
-plot_sitespecific_correlations_annual <- function(obscors, simcors, fig_dir=NULL, filename="5_Sites_MedianTrials_AnnualCorrelations", vars=c("prcp","tmax","tmin")){
+plot_sitespecific_correlations_annual <- function(obscors, simcors, fig_dir=NULL, filename="5_Sites_MedianTrials_AnnualCorrelations", vars=c("prcp","tmax","tmin","wind")){
   if(!is.null(fig_dir)){
     pdf(width=3*length(vars), height=3*2, file=file.path(fig_dir, paste0(filename, ".pdf")))
   }

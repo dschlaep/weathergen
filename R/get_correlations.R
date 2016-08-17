@@ -2,13 +2,13 @@
 #' get_correlations calculate correlations for plot function 5
 #'
 #' @param annual_means This value can be retrieved from get_observed_statistics(...)$AnnualMeans or get_simulated_statistics(..)$AnnualMeans
-#' @param vars variables for whic a calculation is done. Default is c("prcp","tmax","tmin")
+#' @param vars variables for whic a calculation is done. Default is c("prcp","tmax","tmin","wind")
 #' @export
 #' @examples
 #' obsstats$cors <- get_correlations(annual_means=obssStats$AnnualMeans[-1, -1, , , drop=FALSE])
 #' 
 #'
-get_correlations <- function(annual_means, vars= c("prcp","tmax","tmin")){
+get_correlations <- function(annual_means, vars= c("prcp","tmax","tmin","wind")){
   num_trials <- dim(annual_means)[1]
   
   #Intersites correlations of annual series
