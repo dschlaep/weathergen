@@ -77,7 +77,7 @@ get_simulated_statistics <- function(wgen_out_array, vars=c("prcp","tmax","tmin"
         
         #PRCP mean monthly wet/dry spells
         if(toupper(vars[iv]) == "PRCP"){
-          if (any(toupper(testspells)=="EXTREME")) { # Currently, if extreme is in spells, ignore it. Implementation will follow
+          if (any(toupper(spells)=="EXTREME")) { # Currently, if extreme is in spells, ignore it. Implementation will follow
             Spells[1 + k1, 1 + ss, c(-7,-8,-9), ] <- t(aggregate(Sim_Variable[, k1, iv], by=list(data.matrix(wgen_out_array[ss,k1][[1]]$out[, c("MONTH")])), FUN=function(x) {
               temp <- rle(x > 0)
               res <- sapply(list(temp$lengths[temp$values], temp$lengths[!temp$values]), FUN=function(x) c(mean(x), sd(x), skew(x)))

@@ -38,15 +38,9 @@ get_observed_statistics <- function(wgen_out_array, vars=c("prcp","tmax","tmin",
   
   
   for (k1 in 1:num_trials) for(iv in seq_along(vars)){
-    SITE_OBS <- sapply(wgen_out_array[, 1], simplify = "array", FUN=function(x) unlist(x$obs[toupper(vars[iv])] )) # TODO test, hopefully will allow flexible use between c("prcp","tmax","tmin") and c("prcp","tmax","tmin","wind")
-    # SITE_OBS <- sapply(myarray[,1], simplify = "array", FUN=function(x) { a <- unlist(x$obs[toupper(vars[iv])] ); a }) # TODO test, hopefully will allow flexible use between c("prcp","tmax","tmin") and c("prcp","tmax","tmin","wind")
-    # SITE_OBS <- switch(iv,  sapply(wgen_out_array[,1], simplify = "array", FUN=function(x) { a <- unlist(x$obs['PRCP'] ); a }),  
-    #                         sapply(wgen_out_array[,1], simplify = "array", FUN=function(x) { a <- unlist(x$obs['TMAX'] ); a }), 
-    #                         sapply(wgen_out_array[,1], simplify = "array", FUN=function(x) { a <- unlist(x$obs['TMIN'] ); a }))
-    
+    SITE_OBS <- sapply(wgen_out_array[, 1], simplify = "array", FUN=function(x) unlist(x$obs[toupper(vars[iv])] ))
     
     #Monthly mean daily values
-    
     if(toupper(vars[iv]) == "PRCP"){
       Stats[1 + k1, -1, 1, iv, 1, months] <- t(apply(SITE_OBS, c(2), function(x) {y <- which(x>0); aggregate(x[y], by=list(month[y]), FUN=mean)[,2]}))
       Stats[1 + k1, -1, 2, iv, 1, months] <- t(apply(SITE_OBS, c(2), function(x) {y <- which(x>0); aggregate(x[y], by=list(month[y]), FUN=sd)[,2]}))
@@ -90,7 +84,7 @@ get_observed_statistics <- function(wgen_out_array, vars=c("prcp","tmax","tmin",
       #   res <- sapply(list(temp$lengths[temp$values], temp$lengths[!temp$values]), FUN=function(x) c(mean(x), sd(x), psych::skew(x)))
       #   return(res)})[, 2])
       
-        if (any(toupper(testspells)=="EXTREME")) { # Currently, if extreme is in spells, ignore it. Implementation will follow
+        if (any(toupper(spells)=="EXTREME")) { # Currently, if extreme is in spells, ignore it. Implementation will follow
           Spells[1 + k1, 1 + is,c(-7,-8,-9) , ] <- t(aggregate(wgen_out_array[[is,1]]$obs['PRCP'], by=list(month), FUN=function(x) {
             temp <- rle(x > 0)
             res <- sapply(list(temp$lengths[temp$values], temp$lengths[!temp$values]), FUN=function(x) c(mean(x), sd(x), psych::skew(x)))
