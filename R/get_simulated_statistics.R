@@ -77,15 +77,30 @@ get_simulated_statistics <- function(wgen_out_array, vars=c("prcp","tmax","tmin"
         
         #PRCP mean monthly wet/dry spells
         if(toupper(vars[iv]) == "PRCP"){
+          
+          # worth calculating? always equal to dry_wet_threshold wgen_daily parameter, therefore currently just use it.....
+          # dw_threshhold <- apply(month,1 ,function(x) wgen_out_array[[is,1]]$state_thresholds[x,2]) 
+          dw_threshhold <- wgen_out_array[[ss,k1]]$state_thresholds[1,2]
+          
           if (any(toupper(spells)=="EXTREME")) { # Currently, if extreme is in spells, ignore it. Implementation will follow
-            Spells[1 + k1, 1 + ss, c(-7,-8,-9), ] <- t(aggregate(Sim_Variable[, k1, iv], by=list(data.matrix(wgen_out_array[ss,k1][[1]]$out[, c("MONTH")])), FUN=function(x) {
-              temp <- rle(x > 0)
+            
+            we_quantile <- apply(month,1 ,function(x) wgen_out_array[[ss,k1]]$state_thresholds[x,3])
+            temp <- Sim_Variable[, k1, iv] <= we_quantile # split extreme and wet
+            temp2 <- temp
+            temp2[temp2==FALSE] <- 2 # will get more 0 and 1, so use 2 for extreme
+            temp <- Sim_Variable[, k1, iv]  > dw_threshhold # get dry 
+            temp2[temp2==1] <- temp[temp2==1]   
+            Spells[1 + k1, 1 + ss, c(-7,-8,-9), ] <- t(aggregate(temp2, by=list(data.matrix(wgen_out_array[ss,k1][[1]]$out[, c("MONTH")])), FUN=function(x) {
+              temp <- rle(x )
               res <- sapply(list(temp$lengths[temp$values], temp$lengths[!temp$values]), FUN=function(x) c(mean(x), sd(x), skew(x)))
-              return(res)})[, 2])           
+              return(res)})[, 2])     
+            # Spells[1 + k1, 1 + ss, c(-7,-8,-9), ] <- t(aggregate(Sim_Variable[, k1, iv], by=list(data.matrix(wgen_out_array[ss,k1][[1]]$out[, c("MONTH")])), FUN=function(x) {
+            #   temp <- rle(x > 0)
+            #   res <- sapply(list(temp$lengths[temp$values], temp$lengths[!temp$values]), FUN=function(x) c(mean(x), sd(x), skew(x)))
+            #   return(res)})[, 2])           
           } else {  
-            #Spells[1 + k1, 1 + ss, , ] <- t(aggregate(Sim_Variable[, k1, iv], by=list(MONTH_SIM), FUN=function(x) {
             Spells[1 + k1, 1 + ss, , ] <- t(aggregate(Sim_Variable[, k1, iv], by=list(data.matrix(wgen_out_array[ss,k1][[1]]$out[, c("MONTH")])), FUN=function(x) {
-              temp <- rle(x > 0)
+              temp <- rle(x > dw_threshhold) # was x > 0
               res <- sapply(list(temp$lengths[temp$values], temp$lengths[!temp$values]), FUN=function(x) c(mean(x), sd(x), skew(x)))
               return(res)})[, 2])
           }
