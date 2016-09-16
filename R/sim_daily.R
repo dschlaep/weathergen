@@ -36,7 +36,7 @@ sim_daily <- function(historical, n_year, dry_wet_threshold=0.3, wet_extreme_qua
   # compute precipitation thresholds by month
   states <- c('d', 'w', 'e')
   thresh <- mc_state_threshold(historical[['PRCP']], historical[['MONTH']],
-                               dry_wet_threshold=0.3, wet_extreme_quantile_threshold=0.8)
+                               dry_wet_threshold=dry_wet_threshold, wet_extreme_quantile_threshold=wet_extreme_quantile_threshold)
 
   # assign states to each timestep
   assigned_states <- mc_assign_states(historical$PRCP, historical$MONTH, states, thresh)

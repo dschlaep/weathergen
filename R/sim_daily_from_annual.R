@@ -85,7 +85,9 @@ sim_daily_from_annual <- function(prcp_yr, obs_day, obs_prcp_yr, start_month=10,
     sim_days_i <- sim_daily(pop_days, n_year = 1, start_month = start_month,
                             start_water_year = start(prcp_yr)+i-1, include_leap_days = include_leap_days,
                             dry_spell_changes = dry_spell_changes,
-                            wet_spell_changes = wet_spell_changes)
+                            wet_spell_changes = wet_spell_changes,
+                            dry_wet_threshold=dry_wet_threshold, 
+                            wet_extreme_quantile_threshold=wet_extreme_quantile_threshold)
 
     # confirm that the sampled days all have the water years in the sampled years
     stopifnot(all(unique(wyear(sim_days_i[['out']][['SAMPLE_DATE']], start_month = start_month)) %in% unique(pop_years)))
