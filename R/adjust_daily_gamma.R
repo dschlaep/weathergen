@@ -33,8 +33,19 @@ adjust_daily_gamma <- function(x, months, mean_changes=1, cv_changes=1, exclude_
 
     x_orig <- x[idx]
     
-    # gamma_fit <- MASS::fitdistr(x_orig, 'gamma')$estimate # Original giving NaNs produced Error (converted from warning) 
-    gamma_fit <- MASS::fitdistr(x_orig,"gamma", start=list(shape = round(max(x_orig)), rate = min(x_orig)),lower=0.0001)$estimate
+    gamma_fit <- try(MASS::fitdistr(x_orig, 'gamma')$estimate) 
+    
+    if (inherits(gamma_fit, "try-error")) {
+      tempM <- mean(x_orig)
+      temp <- log(tempM) - mean(log(x_orig))
+      # Approximate shape and scale instead of very slow call: g <- MASS::fitdistr(data, "gamma")
+      gshape <- (3 - temp + sqrt((temp - 3)^2 + 24 * temp)) / (12 * temp)
+      gscale <- tempM / gshape
+      
+      gamma_fit <- list(shape = (3 - temp + sqrt((temp - 3)^2 + 24 * temp)) / (12 * temp),
+                        rate = gshape / tempM)
+    }
+
     gamma_adj <- c(shape=gamma_fit[['shape']]/(cv_changes[m])^2,
                    rate=gamma_fit[['rate']]/(mean_changes[m]*(cv_changes[m])^2))
 
