@@ -15,14 +15,16 @@ mc_fit <- function(states, months) {
   transitions <- lapply(seq(1, 12), function(m) {
     idx <- which(months==m)
     trans <- prop.table(table(states[idx], states_next[idx]), 1)
-    # Added in case prop table gives non square matrix back....
-    if (dim(trans)[1] != dim(trans)[2]) {
+    # Added in case prop.table returns non square matrix
+    if (dim(trans)[1] < 3 | dim(trans)[2] < 3) {
       temptrans <- matrix(0,3,3, dimnames = list(c('d', 'e', 'w'),c('d', 'e', 'w')))
       temptrans[,1] <- 1
       if(dim(trans)[1] < dim(trans)[2]) {
         temptrans[rownames(trans),] <- trans
-      } else {
+      } else if (dim(trans)[1] > dim(trans)[2]) {
         temptrans[,colnames(trans)] <- trans
+      } else {
+        temptrans[rownames(trans),colnames(trans)] <- trans
       }
       trans <- temptrans 
     }
