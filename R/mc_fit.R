@@ -17,15 +17,9 @@ mc_fit <- function(states, months) {
     trans <- prop.table(table(states[idx], states_next[idx]), 1)
     # Added in case prop.table returns non square matrix
     if (dim(trans)[1] < 3 | dim(trans)[2] < 3) {
+    # if (!(all(c("d", "e", "w") %in% rownames(states)) & all(c("d", "e", "w") %in% colnames(states)))) {
       temptrans <- matrix(0,3,3, dimnames = list(c('d', 'e', 'w'),c('d', 'e', 'w')))
-      temptrans[,1] <- 1
-      if(dim(trans)[1] < dim(trans)[2]) {
-        temptrans[rownames(trans),] <- trans
-      } else if (dim(trans)[1] > dim(trans)[2]) {
-        temptrans[,colnames(trans)] <- trans
-      } else {
-        temptrans[rownames(trans),colnames(trans)] <- trans
-      }
+      temptrans[rownames(trans),colnames(trans)] <- trans
       trans <- temptrans 
     }
     trans
