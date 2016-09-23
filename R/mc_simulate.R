@@ -16,7 +16,7 @@ mc_simulate <- function(months, initial, transitions, states=c('d', 'w', 'e')) {
   chain[1] <- initial
 
   for (i in 2:n) {
-    chain[i] <- sample(states, size=1, prob=transitions[[months[i-1]]][chain[i-1], ])
+    chain[i] <- sample(colnames(transitions[[months[i-1]]]), size=1, prob=transitions[[months[i-1]]][chain[i-1], ]) # used colnames instead of states, in case any other function changed order
   }
 
   chain <- ordered(chain, levels=states)
