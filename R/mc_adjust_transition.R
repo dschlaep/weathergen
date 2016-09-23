@@ -9,6 +9,8 @@
 #' mc_adjust_transition(transition[[1]], dry_spell=1, wet_spell=1)
 #'
 mc_adjust_transition <- function(transition, dry_spell=1, wet_spell=1) {
+  # got numerical problems, where 0.962963 - 0.962963 = -1.110223e-16, stopping execution. with a spell of 1 nothing should change anyway. 
+  if (dry_spell == 1 & wet_spell == 1) return(transition)
   states <- rownames(transition)
 
   p <- transition
