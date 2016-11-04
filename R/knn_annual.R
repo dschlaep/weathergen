@@ -9,7 +9,9 @@ knn_annual <- function(prcp, obs_prcp, n=100) {
   stopifnot(length(prcp)==1)
   stopifnot(all(!is.na(obs_prcp)))
 
-  k <- round(max(sqrt(length(obs_prcp)), 0.5*length(obs_prcp)), 0)
+  k <- round(max(sqrt(length(obs_prcp)), 0.5*length(obs_prcp)), 0) #jeff's version
+  # scott's version, added for a test, not sure what the second round is doing, as length should always be integer, so probably above is right, but lets try...
+  # k <- max(round(sqrt(length(obs_prcp)),0), round(length(obs_prcp)) * 0.5, 0)
   stopifnot(k > 0)
 
   df <- data.frame(YEAR=time(obs_prcp),
