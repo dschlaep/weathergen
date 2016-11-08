@@ -54,6 +54,7 @@ sim_daily <- function(historical, n_year, dry_wet_threshold=0.3, wet_extreme_qua
 
   # fit Markov Chain transition probabilities
   transitions_historical <- mc_fit(states=historical[['STATE']], months=historical[['MONTH']])
+ 
   equilibria_historical <- lapply(transitions_historical, mc_state_equilibrium)
   probability_wet_historical <- sapply(equilibria_historical, function(equil) {
     sum(equil[2:3])
@@ -66,6 +67,7 @@ sim_daily <- function(historical, n_year, dry_wet_threshold=0.3, wet_extreme_qua
                               wet_spell=wet_spell_changes[[i]])
     x
   })
+  
   equilibria <- lapply(transitions, mc_state_equilibrium)
   probability_wet <- sapply(equilibria, function(equil) {
     sum(equil[2:3])
