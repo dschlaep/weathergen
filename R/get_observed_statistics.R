@@ -89,7 +89,7 @@ get_observed_statistics <- function(wgen_out_array, vars=c("prcp","tmax","tmin",
         dw_threshhold <- wgen_out_array[[is,1]]$state_thresholds[1,2]
         
         if (any(toupper(spells)=="EXTREME")) { # Currently, if extreme is in spells, ignore it. Implementation will follow
-          we_quantile <- apply(month,1 ,function(x) wgen_out_array[[is,1]]$state_thresholds[x,3])
+          we_quantile <- apply(month,1 ,function(x) wgen_out_array[[is,1]]$state_thresholds[as.integer(x),3])
           temp <- wgen_out_array[[is,1]]$obs[['PRCP']] <= we_quantile # split extreme and wet
           temp2 <- temp
           temp2[temp2==FALSE] <- 2 # will get more 0 and 1, so use 2 for extreme
