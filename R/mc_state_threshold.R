@@ -15,7 +15,7 @@ mc_state_threshold <- function(x, months, dry_wet_threshold=0.3, wet_extreme_qua
 
   thresh <- lapply(seq(1, 12), function(month) {
     # idx <- which(months == month) # jeffs package version, leads to breaks not unique error
-    idx <- which(months == month & x > dry_wet_threshold) # scotts version
+    idx <- which(as.integer(months) == as.integer(month) & x > dry_wet_threshold) # scotts version
     if (length(idx) > 0) {
       x.month <- x[idx]
       res <- c(dry_wet=dry_wet_threshold, wet_extreme=unname(quantile(x.month, probs=wet_extreme_quantile_threshold)))
