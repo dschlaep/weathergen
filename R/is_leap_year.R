@@ -1,5 +1,5 @@
 #' Check if a year is a leap year
-#'
+#' Since this package uses lubridate, consider using lubridate::leap_year instead
 #' @param year to check
 #' @return TRUE in case year is a leap year
 is_leap_year=function(year){
