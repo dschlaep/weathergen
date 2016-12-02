@@ -7,7 +7,7 @@
 #' wyear(lubridate::ymd("2000-10-01"), start_month=10)
 #' wyear(lubridate::ymd(c("2000-01-01", "2000-09-30", "2000-10-01", "2000-12-31")), start_month=10)
 wyear <- function(x, start_month=10) {
-  if(start_month > 1) { # no need to increase year for all months...
+  if(start_month != 1) { # no need to increase wateryear for some months if year does fit already
     x.wyr <- ifelse(lubridate::month(x)>=start_month, lubridate::year(x)+1, lubridate::year(x))
   } else {
     x.wyr <- lubridate::year(x)
