@@ -17,14 +17,20 @@ sim_mc_knn_day <- function(x, n_year, states, transitions,
       data.frame(MEAN=mean(x$VALUE), SD=sd(x$VALUE))
     })
   })
-
+  
   sim_dates <- wyear_date_range(n_year = n_year, start_month = start_month,
-                                start_water_year = start_water_year, include_leap_days = include_leap_days)
-  sim <- data.frame(SIM_YEAR=rep(seq(from=1, to=n_year, by=1), each=365),
-                    DATE=sim_dates,
-                    MONTH=lubridate::month(sim_dates),
-                    WDAY=rep(1:365, times=n_year))
-
+                                  start_water_year = start_water_year, include_leap_days = include_leap_days)
+  if (include_leap_days == FALSE) {  
+    sim <- data.frame(SIM_YEAR=rep(seq(from=1, to=n_year, by=1), each=365),
+                      DATE=sim_dates,
+                      MONTH=lubridate::month(sim_dates),
+                      WDAY=rep(1:365, times=n_year))
+  } else {
+    sim <- data.frame(SIM_YEAR=format(sim_dates, "%Y"),
+                      DATE=sim_dates,
+                      MONTH=lubridate::month(sim_dates),
+                      WDAY=waterday(sim_dates, start_month = start_month))  
+  }
   # pick random initial condition from x dataset
   initial <- sample(which(x$WDAY==sim[[1, 'WDAY']]), size=1)
   sim[1, 'SAMPLE_DATE'] <- format(x[[initial, 'DATE']], "%Y-%m-%d")

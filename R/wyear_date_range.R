@@ -9,7 +9,8 @@
 #' wyear_date_range(n_year=10, start_month=10, start_water_year=2000, include_leap_days=FALSE)
 wyear_date_range <- function(n_year, start_month=10, start_water_year=2000, include_leap_days=FALSE) {
   if (include_leap_days) {
-    stop('Leap days not yet supported')
+    # was stop('Leap days not yet supported')
+    warning('Did I mention using Leap days is a questionable idea? it has hardly been tested.')
   }
 
   if (start_month != 1) {
@@ -21,14 +22,15 @@ wyear_date_range <- function(n_year, start_month=10, start_water_year=2000, incl
   dates <- seq.Date(from=as.Date(paste(start_year, start_month, 1, sep='-')),
                     to=as.Date(paste(start_year+n_year, start_month, 1, sep='-')) - lubridate::days(1),
                     by=1)
+  
+  if (!include_leap_days) {
+    # remove leap days
+    leap_days <- which(lubridate::month(dates)==2 & lubridate::day(dates)==29)
+    if (length(leap_days) > 0) {
+      dates <- dates[-leap_days]
+    }
 
-  # remove leap days
-  leap_days <- which(lubridate::month(dates)==2 & lubridate::day(dates)==29)
-  if (length(leap_days) > 0) {
-    dates <- dates[-leap_days]
+    stopifnot(length(dates) %% 365 == 0)
   }
-
-  stopifnot(length(dates) %% 365 == 0)
-
   dates
 }
