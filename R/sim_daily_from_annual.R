@@ -30,10 +30,10 @@ sim_daily_from_annual <- function(prcp_yr, obs_day, obs_prcp_yr, start_month=10,
                                   adjust_annual_precip=TRUE, annual_precip_adjust_limits=c(0.9, 1.1),
                                   dry_spell_changes=1, wet_spell_changes=1,
                                   prcp_mean_changes=1, prcp_cv_changes=1, temp_mean_changes=0) {
-  if (include_leap_days) {
-    # was stop('Leap days not yet supported')
-    warning('Leap days not yet properly tested')
-  }
+  # if (include_leap_days) {
+  #   # was stop('Leap days not yet supported')
+  #   warning('Leap days not yet properly tested')
+  # }
 
   if (length(dry_spell_changes) == 1) {
     dry_spell_changes <- rep(dry_spell_changes, 12)
